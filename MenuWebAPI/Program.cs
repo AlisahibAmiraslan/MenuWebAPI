@@ -1,5 +1,8 @@
 global using MenuWebAPI.Data;
 global using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace MenuWebAPI
 {
@@ -7,7 +10,7 @@ namespace MenuWebAPI
     {
         public static void Main(string[] args)
         {
-            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            var MyAllowSpecificOrigins = "MyPolicy";
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -22,13 +25,25 @@ namespace MenuWebAPI
             builder.Services.AddSwaggerGen();
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(name: "MyPolicy",
+                options.AddPolicy(name: MyAllowSpecificOrigins,
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:3000", "http://aliaslanwebapi.online").AllowAnyHeader()
+                        policy.WithOrigins("http://localhost:3001", "https://denemereactapp.netlify.app").AllowAnyHeader()
                                 .WithMethods("PUT", "DELETE", "GET", "POST");
                     });
             });
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+                .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
             var app = builder.Build();
 
@@ -40,10 +55,11 @@ namespace MenuWebAPI
 
             app.UseHttpsRedirection();
 
-            app.UseCors();
-
             app.UseAuthorization();
+            app.UseCors(MyAllowSpecificOrigins);
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
 
             app.MapControllers();
 
