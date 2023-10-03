@@ -1,4 +1,5 @@
 ﻿using MenuWebAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -58,7 +59,7 @@ namespace MenuWebAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> userLogin([FromBody] Login user)
+        public async Task<IActionResult> userLogin([FromBody] User user)
         {
             try
             {
@@ -86,6 +87,7 @@ namespace MenuWebAPI.Controllers
             }
         
         }
+       
 
         //pasword hashed
         public static string hashPassword(string password)
@@ -96,12 +98,11 @@ namespace MenuWebAPI.Controllers
             return Convert.ToBase64String(hashedPassword);
         }
 
-        private string CreateToken(Login user)
+        private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, user.Email)
-                //new Claim(ClaimTypes.Role, "Admin")
+                new Claim(ClaimTypes.Email, user.Email),
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
@@ -111,7 +112,7 @@ namespace MenuWebAPI.Controllers
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddMinutes(1),
                 signingCredentials: creds);
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
