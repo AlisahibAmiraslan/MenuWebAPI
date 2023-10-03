@@ -78,7 +78,7 @@ namespace MenuWebAPI.Controllers
 
                 var token = CreateToken(user);
 
-                return Ok(token);
+                return Ok(new { dbUser, token });
             }
             catch (Exception ex)
             {
