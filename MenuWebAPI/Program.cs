@@ -28,7 +28,7 @@ namespace MenuWebAPI
                 options.AddPolicy(name: MyAllowSpecificOrigins,
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:3001", "https://denemereactapp.netlify.app").AllowAnyHeader()
+                        policy.WithOrigins("http://localhost:3001", "http://localhost:3000", "https://denemereactapp.netlify.app").AllowAnyHeader()
                                 .WithMethods("PUT", "DELETE", "GET", "POST");
                     });
             });
@@ -54,7 +54,7 @@ namespace MenuWebAPI
             
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseCors(MyAllowSpecificOrigins);
 

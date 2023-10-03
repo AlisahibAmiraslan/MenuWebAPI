@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
 using MenuWebAPI.Models;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MenuWebAPI.Controllers
 {
    
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class FileUploadController : ControllerBase
     {
         private static IWebHostEnvironment _webHostEnvironment;
