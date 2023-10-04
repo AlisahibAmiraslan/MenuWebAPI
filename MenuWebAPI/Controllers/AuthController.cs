@@ -15,8 +15,10 @@ namespace MenuWebAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
+  
 
         public AuthController(DataContext context , IConfiguration configuration)
         {
@@ -46,7 +48,7 @@ namespace MenuWebAPI.Controllers
                 {
                     u.Id,
                     u.UserName,
-                    u.Email,
+                    u.Email
                 }).FirstOrDefault();
 
 
@@ -78,7 +80,12 @@ namespace MenuWebAPI.Controllers
 
                 var token = CreateToken(user);
 
-                return Ok(new { dbUser, token });
+                var refreshToken = GenerateRefreshToken();
+
+                SetRefreshToken(refreshToken, user);
+
+
+                return Ok(new { dbUser, token, refreshToken });
             }
             catch (Exception ex)
             {
@@ -88,16 +95,36 @@ namespace MenuWebAPI.Controllers
         
         }
        
-
-        //pasword hashed
-        public static string hashPassword(string password)
+        // generate refreshToken
+        private RefreshToken GenerateRefreshToken()
         {
-            var sha = SHA256.Create();
-            var asByteArray = Encoding.Default.GetBytes(password);  
-            var hashedPassword = sha.ComputeHash(asByteArray);
-            return Convert.ToBase64String(hashedPassword);
+            var refreshToken = new RefreshToken
+            {
+                Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+                Expires = DateTime.Now.AddDays(7),
+                Created = DateTime.Now
+            };
+
+            return refreshToken;
         }
 
+        // set refresh token
+        private void SetRefreshToken(RefreshToken newRefreshToken, User user)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = newRefreshToken.Expires,
+            };
+
+            Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
+
+            user.RefreshToken = newRefreshToken.Token;
+            user.TokenCreated = newRefreshToken.Created;
+            user.TokenExpires = newRefreshToken.Expires;
+        }
+
+        // create token
         private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>
@@ -118,6 +145,15 @@ namespace MenuWebAPI.Controllers
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
+        }
+
+        //pasword hashed
+        public static string hashPassword(string password)
+        {
+            var sha = SHA256.Create();
+            var asByteArray = Encoding.Default.GetBytes(password);
+            var hashedPassword = sha.ComputeHash(asByteArray);
+            return Convert.ToBase64String(hashedPassword);
         }
 
     }
