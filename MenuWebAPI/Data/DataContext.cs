@@ -17,5 +17,6 @@ namespace MenuWebAPI.Data
         public DbSet<Weapon> Weapons { get; set; }
         public DbSet<Faction> Factions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Car> Cars { get; set; }    
     }
 }

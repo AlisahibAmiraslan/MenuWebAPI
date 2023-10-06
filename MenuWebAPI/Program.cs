@@ -1,8 +1,12 @@
 global using MenuWebAPI.Data;
 global using Microsoft.EntityFrameworkCore;
+using MenuWebAPI.Interfaces;
+using MenuWebAPI.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NLog;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace MenuWebAPI
 {
@@ -16,6 +20,9 @@ namespace MenuWebAPI
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddAutoMapper(typeof(Program).Assembly);
+            // REPOÝSTORi ve interfacei tanýmlamak için eklenmesi gereken
+            builder.Services.AddScoped<ICarRepository, CarRepository>();
             builder.Services.AddDbContext<DataContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -49,9 +56,8 @@ namespace MenuWebAPI
 
             // Configure the HTTP request pipeline.
           
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
             app.UseAuthentication();
@@ -62,7 +68,6 @@ namespace MenuWebAPI
             app.UseStaticFiles();
 
             app.MapControllers();
-
             app.Run();
         }
     }
